@@ -79,6 +79,33 @@ input { font: inherit; color: inherit; }
 .niks { text-align: center; color: #5d6280; padding: 50px 20px; font-size: 15px; }
 .niks b { display: block; font-size: 40px; margin-bottom: 6px; }
 
+/* tabbladen: rooster / cijfers */
+.tabs { display: -ms-flexbox; display: flex; background: #2d3a8c; padding: 0 8px; -ms-flex-negative: 0; flex-shrink: 0; }
+.tabs button { font-size: 24px; font-weight: 300; color: #8f97cf; padding: 0 8px 6px; line-height: 1.1; }
+.tabs button.aan { color: #fff; }
+.tab { -ms-flex: 1; flex: 1; min-height: 0; display: -ms-flexbox; display: flex; -ms-flex-direction: column; flex-direction: column; }
+#laden { top: 92px; }
+.soort { display: -ms-flexbox; display: flex; margin: 10px 10px 2px; border: 2px solid #2d3a8c; border-radius: 4px; -ms-flex-negative: 0; flex-shrink: 0; }
+.soort button { -ms-flex: 1; flex: 1; height: 34px; font-size: 14px; color: #2d3a8c; font-weight: 600; }
+.soort button.aan { background: #2d3a8c; color: #fff; }
+
+.cijfer {
+  display: -ms-flexbox; display: flex; -ms-flex-align: center; align-items: center; background: #fff; border-radius: 6px;
+  margin-bottom: 8px; box-shadow: 0 1px 2px rgba(20,25,60,.12); padding: 8px 10px; min-height: 58px;
+}
+.cijfer .getal {
+  width: 52px; height: 42px; -ms-flex-negative: 0; flex-shrink: 0; border-radius: 6px; margin-right: 10px; text-align: center;
+  font-size: 20px; font-weight: 600; line-height: 42px; color: #fff; background: #17a398;
+}
+.cijfer .getal.onv { background: #e4572e; }
+.cijfer .getal.tekst { background: #9a9db3; font-size: 15px; }
+.cijfer .tekst2 { -ms-flex: 1; flex: 1; min-width: 0; }
+.cijfer .vak { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cijfer .sub { font-size: 13px; color: #5d6280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cijfer .rechts { font-size: 12px; color: #5d6280; text-align: right; margin-left: 8px; white-space: nowrap; }
+.kopje { font-size: 13px; color: #5d6280; margin: 12px 4px 6px; }
+.terugRij { display: block; color: #2d3a8c; font-weight: 600; font-size: 14px; padding: 6px 4px 8px; }
+
 /* vellen */
 #detail, #menu { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 10; }
 .schaduw { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(10,12,30,.5); }

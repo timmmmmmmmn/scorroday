@@ -207,6 +207,8 @@
     for (var k in cache) zet('sc_week_' + k, null);
     cache = {};
     zet('sc_weken', null);
+    zet('sc_cijfers', null);
+    cijfers = null;
     toon('pInlog');
     $('inlogStatus').textContent = bericht || '';
   }
@@ -435,6 +437,194 @@
     else { gekozen = plusDagen(maandag, dagNr); teken(); }
   });
 
+  // ---------- cijfers ----------
+  // Het voortgangsdossier (huidige SOMtoday); oudere scholen: resultaten/huidigVoorLeerling; is het dossier leeg
+  // (examenjaar), dan het examendossier. Gemiddelden rekenen we zelf uit (gewogen, alleen echte cijfers).
+  var CIJFER_TYPES = ['Toetskolom', 'DeeltoetsKolom', 'Werkstukcijferkolom', 'Advieskolom'];
+  var CIJFER_EXTRA = ['vaknaam', 'resultaatkolom', 'naamalternatiefniveau', 'vakuuid', 'lichtinguuid'];
+  var cijfers = null, cijferSoort = 'laatste', openVak = null, cijfersBezig = false;
+  try { cijfers = JSON.parse(lees('sc_cijfers') || 'null'); } catch (e) {}
+
+  function cijferQuery() {
+    var q = [];
+    CIJFER_TYPES.forEach(function (t) { q.push('type=' + t); });
+    CIJFER_EXTRA.forEach(function (a) { q.push('additional=' + a); });
+    q.push('sort=desc-geldendResultaatCijferInvoer');
+    return '?' + q.join('&');
+  }
+  function getal(x) {
+    if (typeof x === 'number') return x;
+    var n = parseFloat(String(x == null ? '' : x).replace(',', '.'));
+    return isNaN(n) ? null : n;
+  }
+  function maakCijfer(r) {
+    var ex = r.additionalObjects || {};
+    var vak = ex.vaknaam || (r.vak && r.vak.naam) || (ex.vak && ex.vak.naam) || 'Onbekend vak';
+    var tekst = r.formattedResultaat || r.geldendResultaat || r.resultaat || r.label || (r.cijfer != null ? String(r.cijfer) : '');
+    var n = getal(r.cijfer != null ? r.cijfer : (r.geldendResultaat != null ? r.geldendResultaat : r.resultaat));
+    var weging = r.weging != null ? r.weging : (r.examenWeging != null ? r.examenWeging : null);
+    return {
+      vak: vak, tekst: String(tekst).replace('.', ','), n: n, weging: weging,
+      wat: r.omschrijving || r.toetssoort || ex.toetssoortnaam || '', code: r.toetscode || '',
+      datum: r.datumInvoerEerstePoging || r.datumInvoer || r.datumInvoerHerkansing1 || '',
+      periode: r.periode || null, voldoende: r.isVoldoende, type: r.type || '',
+      telt: !r.teltNietmee && !r.toetsNietGemaakt, opm: r.opmerkingen || r.bijzonderheid || '',
+    };
+  }
+
+  function laadCijfers(stil) {
+    if (cijfersBezig || !sessie) return;
+    cijfersBezig = true;
+    if (!stil) $('laden').hidden = false;
+    var opties = { accept: ACCEPT_ROOSTER };
+    haalLeerling().then(function (l) {
+      return alles('geldendvoortgangsdossierresultaten/leerling/' + l.id + cijferQuery(), opties).then(function (items) {
+        if (items.length) return items;
+        return alles('geldendexamendossierresultaten/leerling/' + l.id + cijferQuery(), { accept: ACCEPT_ROOSTER });
+      }, function (f) {
+        if (f.status !== 404 && f.status !== 400) throw f;
+        return alles('resultaten/huidigVoorLeerling/' + l.id + '?additional=toetssoortnaam', {});
+      });
+    }).then(function (items) {
+      cijfersBezig = false;
+      $('laden').hidden = true;
+      // gemiddelde-kolommen niet als losse cijfers tonen
+      cijfers = items.filter(function (r) { return !/GemiddeldeKolom$/.test(r.type || ''); }).map(maakCijfer);
+      cijfers.sort(function (a, b) { return (Date.parse(b.datum) || 0) - (Date.parse(a.datum) || 0); });
+      zet('sc_cijfers', JSON.stringify(cijfers));
+      tekenCijfers();
+    }, function (f) {
+      cijfersBezig = false;
+      $('laden').hidden = true;
+      log('cijfers ' + f.status + ' ' + f.message);
+      if (!cijfers) {
+        $('cijfers').innerHTML = '';
+        var n = el('div', 'niks');
+        n.appendChild(el('b', null, '!'));
+        n.appendChild(document.createTextNode('De cijfers konden niet geladen worden. ' + f.message));
+        $('cijfers').appendChild(n);
+      }
+    });
+  }
+
+  function kleurCijfer(c) {
+    if (c.n == null) return 'getal tekst';
+    var onv = c.voldoende === false || (c.voldoende == null && c.n < 5.5);
+    return 'getal' + (onv ? ' onv' : '');
+  }
+  function korteDatum(t) {
+    var d = new Date(t);
+    return isNaN(d) ? '' : d.getDate() + ' ' + MAAND[d.getMonth()].slice(0, 3);
+  }
+  function cijferKaart(c, metVak) {
+    var k = el('div', 'cijfer');
+    k.appendChild(el('div', kleurCijfer(c), c.tekst || '–'));
+    var t = el('div', 'tekst2');
+    t.appendChild(el('div', 'vak', metVak ? c.vak : (c.wat || c.code || 'Cijfer')));
+    var sub = metVak ? (c.wat || c.code) : (c.periode ? 'periode ' + c.periode : '');
+    if (sub) t.appendChild(el('div', 'sub', sub));
+    k.appendChild(t);
+    k.appendChild(el('div', 'rechts', korteDatum(c.datum) + (c.weging != null ? '\n' + c.weging + 'x' : '')));
+    k.lastChild.style.whiteSpace = 'pre';
+    k.addEventListener('click', function () { toonCijfer(c); });
+    return k;
+  }
+  function toonCijfer(c) {
+    $('dKleur').style.background = c.n == null ? '#9a9db3' : (/onv/.test(kleurCijfer(c)) ? '#e4572e' : '#17a398');
+    $('dVak').textContent = c.vak + ': ' + (c.tekst || '–');
+    var dl = $('dLijst');
+    dl.innerHTML = '';
+    var d = new Date(c.datum);
+    var rijen = [['toets', c.wat], ['code', c.code], ['weging', c.weging != null ? c.weging + 'x' : ''],
+      ['periode', c.periode ? String(c.periode) : ''], ['ingevoerd', isNaN(d) ? '' : DAG[d.getDay()] + ' ' + d.getDate() + ' ' + MAAND[d.getMonth()] + ' ' + d.getFullYear()],
+      ['opmerking', c.opm], ['telt mee', c.telt ? '' : 'nee']];
+    for (var i = 0; i < rijen.length; i++) {
+      if (!rijen[i][1]) continue;
+      dl.appendChild(el('dt', null, rijen[i][0]));
+      dl.appendChild(el('dd', null, rijen[i][1]));
+    }
+    $('detail').hidden = false;
+  }
+
+  function gemiddelde(lijst) {
+    var som = 0, w = 0;
+    for (var i = 0; i < lijst.length; i++) {
+      var c = lijst[i];
+      if (c.n == null || !c.telt) continue;
+      var g = c.weging == null ? 1 : c.weging;
+      if (!g) continue;
+      som += c.n * g; w += g;
+    }
+    return w ? som / w : null;
+  }
+  function tekenCijfers() {
+    var box = $('cijfers');
+    box.innerHTML = '';
+    if (!cijfers) return;
+    if (!cijfers.length) {
+      var n = el('div', 'niks');
+      n.appendChild(el('b', null, '📝'));
+      n.appendChild(document.createTextNode('Nog geen cijfers dit jaar.'));
+      box.appendChild(n);
+      return;
+    }
+    if (cijferSoort === 'laatste') {
+      for (var i = 0; i < Math.min(cijfers.length, 60); i++) box.appendChild(cijferKaart(cijfers[i], true));
+      return;
+    }
+    if (openVak) {
+      var terugKnop = el('button', 'terugRij', '‹ alle vakken');
+      terugKnop.addEventListener('click', function () { openVak = null; tekenCijfers(); });
+      box.appendChild(terugKnop);
+      var vanVak = cijfers.filter(function (c) { return c.vak === openVak; });
+      var gem = gemiddelde(vanVak);
+      box.appendChild(el('div', 'kopje', openVak + (gem != null ? ' · gemiddeld ' + gem.toFixed(1).replace('.', ',') : '')));
+      vanVak.forEach(function (c) { box.appendChild(cijferKaart(c, false)); });
+      return;
+    }
+    var vakken = {}, namen = [];
+    cijfers.forEach(function (c) { if (!vakken[c.vak]) { vakken[c.vak] = []; namen.push(c.vak); } vakken[c.vak].push(c); });
+    namen.sort();
+    namen.forEach(function (v) {
+      var g = gemiddelde(vakken[v]);
+      var k = el('div', 'cijfer');
+      k.appendChild(el('div', g == null ? 'getal tekst' : 'getal' + (g < 5.5 ? ' onv' : ''), g == null ? '–' : g.toFixed(1).replace('.', ',')));
+      var t = el('div', 'tekst2');
+      t.appendChild(el('div', 'vak', v));
+      t.appendChild(el('div', 'sub', vakken[v].length + (vakken[v].length === 1 ? ' cijfer' : ' cijfers') + ' · laatste ' + vakken[v][0].tekst));
+      k.appendChild(t);
+      k.appendChild(el('div', 'rechts', '›'));
+      k.addEventListener('click', function () { openVak = v; tekenCijfers(); $('cijfers').scrollTop = 0; });
+      box.appendChild(k);
+    });
+    box.appendChild(el('div', 'pauze', 'gemiddelden zelf uitgerekend (gewogen); je rapportcijfer kan anders zijn'));
+  }
+
+  var sk = $('tCijfers').querySelectorAll('.soort button');
+  for (var si = 0; si < sk.length; si++) {
+    sk[si].addEventListener('click', function () {
+      cijferSoort = this.getAttribute('data-soort');
+      openVak = null;
+      for (var j = 0; j < sk.length; j++) sk[j].className = sk[j] === this ? 'aan' : '';
+      tekenCijfers();
+      $('cijfers').scrollTop = 0;
+    });
+  }
+
+  // ---------- tabbladen ----------
+  var tab = 'tRooster';
+  var tk = document.querySelectorAll('.tabs button');
+  function kiesTab(id) {
+    tab = id;
+    for (var j = 0; j < tk.length; j++) tk[j].className = tk[j].getAttribute('data-tab') === id ? 'aan' : '';
+    $('tRooster').hidden = id !== 'tRooster';
+    $('tCijfers').hidden = id !== 'tCijfers';
+    $('vandaagKnop').style.display = id === 'tRooster' ? '' : 'none';
+    if (id === 'tCijfers') { tekenCijfers(); laadCijfers(!!cijfers); }
+  }
+  for (var ti = 0; ti < tk.length; ti++) tk[ti].addEventListener('click', function () { kiesTab(this.getAttribute('data-tab')); });
+
+
   // menu
   $('menuKnop').addEventListener('click', function () { $('menu').hidden = false; });
   $('menu').querySelector('.schaduw').addEventListener('click', function () { $('menu').hidden = true; });
@@ -442,7 +632,7 @@
   for (var mi = 0; mi < mk.length; mi++) {
     mk[mi].addEventListener('click', function () {
       $('menu').hidden = true;
-      if (this.getAttribute('data-doe') === 'ververs') laadWeek(maandag, false);
+      if (this.getAttribute('data-doe') === 'ververs') { if (tab === 'tCijfers') laadCijfers(false); else laadWeek(maandag, false); }
       if (this.getAttribute('data-doe') === 'uit' && window.confirm('Uitloggen bij Scorroday?')) uitloggen();
     });
   }
@@ -457,7 +647,7 @@
   }
   // terug in de app na een tijdje: rooster bijwerken
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden && sessie && !$('pRooster').hidden) { teken(); laadWeek(maandag, true); }
+    if (!document.hidden && sessie && !$('pRooster').hidden) { if (tab === 'tCijfers') laadCijfers(true); else { teken(); laadWeek(maandag, true); } }
   });
 
   // ---------- terugknop ----------
@@ -465,6 +655,8 @@
     if (!$('detail').hidden) { $('detail').hidden = true; return true; }
     if (!$('menu').hidden) { $('menu').hidden = true; return true; }
     if (!$('pWeb').hidden) { $('webTerug').click(); return true; }
+    if (tab === 'tCijfers' && openVak) { openVak = null; tekenCijfers(); return true; }
+    if (tab === 'tCijfers') { kiesTab('tRooster'); return true; }
     return false;
   }
   document.addEventListener('keydown', function (e) { if (e.keyCode === 27) terug(); });

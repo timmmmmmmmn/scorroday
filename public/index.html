@@ -48,13 +48,26 @@
     <button id="vandaagKnop" class="kaal">vandaag</button>
     <button id="menuKnop" class="ikoon" aria-label="Menu">&#8942;</button>
   </header>
-  <div class="week">
-    <button id="weekTerug" class="ikoon pijl" aria-label="Vorige week">&#8249;</button>
-    <div id="dagen"></div>
-    <button id="weekVerder" class="ikoon pijl" aria-label="Volgende week">&#8250;</button>
+  <div class="tabs">
+    <button data-tab="tRooster" class="aan">rooster</button>
+    <button data-tab="tCijfers">cijfers</button>
   </div>
-  <div id="dagTitel"></div>
-  <div id="lessen" class="scroll"></div>
+  <div id="tRooster" class="tab">
+    <div class="week">
+      <button id="weekTerug" class="ikoon pijl" aria-label="Vorige week">&#8249;</button>
+      <div id="dagen"></div>
+      <button id="weekVerder" class="ikoon pijl" aria-label="Volgende week">&#8250;</button>
+    </div>
+    <div id="dagTitel"></div>
+    <div id="lessen" class="scroll"></div>
+  </div>
+  <div id="tCijfers" class="tab" hidden>
+    <div class="soort">
+      <button data-soort="laatste" class="aan">laatste</button>
+      <button data-soort="vakken">per vak</button>
+    </div>
+    <div id="cijfers" class="scroll"></div>
+  </div>
   <div id="laden" hidden><i></i><i></i><i></i></div>
 </section>
 
