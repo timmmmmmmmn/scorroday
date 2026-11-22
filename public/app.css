@@ -17,7 +17,7 @@ input { font: inherit; color: inherit; }
 /* inloggen */
 #pInlog { background: #2d3a8c; color: #fff; }
 .inlogKop { padding: 50px 24px 20px; text-align: center; }
-.logo { width: 96px; height: 96px; }
+.logo { width: 96px; height: 96px; border-radius: 20px; }
 .inlogKop h1 { margin: 10px 0 4px; font-size: 34px; font-weight: 300; letter-spacing: .5px; }
 .inlogKop p { margin: 0; color: #c8cdf0; }
 .inlogMidden { padding: 16px 24px; }
