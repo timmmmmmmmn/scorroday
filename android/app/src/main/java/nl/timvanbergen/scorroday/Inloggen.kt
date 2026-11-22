@@ -38,7 +38,7 @@ class Inloggen : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val density = resources.displayMetrics.density
-        val navy = getColor(R.color.launcher_bg)
+        val navy = Color.rgb(45, 58, 140)
 
         val kop = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL

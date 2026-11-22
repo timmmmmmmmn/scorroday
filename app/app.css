@@ -65,7 +65,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -133,7 +133,7 @@ svg.i.dots { stroke-width: 3.4; }
   width: 100%; max-width: 420px; background: var(--surface); border-radius: 36px; padding: 30px 26px 24px;
   box-shadow: 0 24px 60px rgba(5, 10, 50, .4); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
 }
-.login-logo { margin-top: -6px; }
+.login-logo { margin: -4px 0 4px; border-radius: 26px; box-shadow: var(--shadow-sm); }
 .login h1 { font-family: var(--display); font-size: 42px; font-weight: 750; letter-spacing: -.02em; line-height: 1; margin: 0; }
 .login-sub { margin: 0 0 12px; color: var(--muted); font-size: 16px; text-wrap: balance; }
 .login-foot { margin: 4px 0 0; font-size: 13px; color: var(--faint); text-wrap: pretty; }
@@ -208,6 +208,9 @@ button.item:active { background: var(--hover); }
 .hero .bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .2); margin-top: 14px; overflow: hidden; }
 .hero .bar i { display: block; height: 100%; background: var(--sun); border-radius: 3px; }
 .hero.uitval { background: var(--bad); }
+.card-btn { display: block; width: 100%; text-align: left; border: 0; font: inherit; }
+.card-btn:active { transform: scale(.99); }
+.stat b.bad { color: var(--bad); }
 
 .alert { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: var(--bad-soft); color: var(--bad); font-weight: 650; font-size: 15px; margin-top: 10px; border: 0; width: 100%; text-align: left; }
 .alert svg { width: 22px; height: 22px; }
@@ -270,6 +273,9 @@ button.item:active { background: var(--hover); }
 .grade.bad { background: var(--bad-soft); color: var(--bad); }
 .grade.top { background: var(--good-soft); color: var(--good); }
 .grade.txt { font-size: 15px; }
+.datum-blok { width: 46px; height: 46px; border-radius: 14px; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; background: color-mix(in srgb, var(--c) 14%, transparent); color: var(--c); font-family: var(--display); font-weight: 750; font-size: 19px; line-height: 1; }
+.datum-blok small { font-family: var(--font); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+:root[data-theme="donker"] .datum-blok { color: color-mix(in srgb, var(--c) 55%, white); }
 .grade.verborgen { background: var(--line2); color: var(--faint); font-size: 22px; }
 .item.nieuw .item-t::after { content: 'nieuw'; margin-left: 6px; font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 999px; background: var(--sun); color: #3D2600; vertical-align: 2px; }
 
