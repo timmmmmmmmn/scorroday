@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Scorroday</title>
+<meta name="theme-color" content="#2d3a8c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="app.css?v=1">
+</head>
+<body>
+<div id="fout" hidden></div>
+
+<!-- inloggen -->
+<section id="pInlog" class="pagina" hidden>
+  <div class="inlogKop">
+    <img src="img/logo.svg" alt="" class="logo">
+    <h1>Scorroday</h1>
+    <p>Je rooster van SOMtoday, licht en snel.</p>
+  </div>
+  <div class="inlogMidden">
+    <button id="inlogKnop" class="knop groot">Inloggen met SOMtoday</button>
+    <p class="klein">Je kiest je school en logt in zoals je gewend bent: met je schoolaccount, Microsoft of Entree.</p>
+    <div id="plakDeel" hidden>
+      <p class="klein">Lukt het niet vanzelf? Kopieer de link die begint met <b>somtoday://</b> (in de ontwikkelaarstools onder Netwerk) en plak hem hier.</p>
+      <form id="plakForm"><input id="plakVeld" class="veld" placeholder="somtoday://…" autocomplete="off"><button class="knop">OK</button></form>
+    </div>
+    <div id="inlogStatus" class="klein"></div>
+  </div>
+</section>
+
+<!-- inlogscherm van SOMtoday binnen de app (alleen in de Lumia-app) -->
+<section id="pWeb" class="pagina" hidden>
+  <div class="balk"><button id="webTerug" class="ikoon" aria-label="Terug">&#8592;</button><span>Inloggen</span></div>
+  <div id="webPlek"></div>
+  <div id="webLaden"><i></i><i></i><i></i></div>
+</section>
+
+<!-- rooster -->
+<section id="pRooster" class="pagina" hidden>
+  <header class="balk">
+    <div class="titel"><b id="naam">Rooster</b><span id="school"></span></div>
+    <button id="vandaagKnop" class="kaal">vandaag</button>
+    <button id="menuKnop" class="ikoon" aria-label="Menu">&#8942;</button>
+  </header>
+  <div class="week">
+    <button id="weekTerug" class="ikoon pijl" aria-label="Vorige week">&#8249;</button>
+    <div id="dagen"></div>
+    <button id="weekVerder" class="ikoon pijl" aria-label="Volgende week">&#8250;</button>
+  </div>
+  <div id="dagTitel"></div>
+  <div id="lessen" class="scroll"></div>
+  <div id="laden" hidden><i></i><i></i><i></i></div>
+</section>
+
+<!-- les in het groot -->
+<div id="detail" hidden>
+  <div class="schaduw"></div>
+  <div class="vel">
+    <div id="dKleur" class="streep"></div>
+    <h2 id="dVak"></h2>
+    <dl id="dLijst"></dl>
+    <button id="dSluit" class="knop">Sluiten</button>
+  </div>
+</div>
+
+<div id="menu" hidden>
+  <div class="schaduw"></div>
+  <div class="vel menuVel">
+    <button data-doe="ververs">Vernieuwen</button>
+    <button data-doe="uit">Uitloggen</button>
+  </div>
+</div>
+
+<script src="fout.js"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
